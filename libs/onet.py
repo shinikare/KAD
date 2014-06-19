@@ -40,7 +40,7 @@ def getPageWords(url):
     """
         Parse page and return words from content
         @param url Link to page
-        @return {set}
+        @return {list}
     """
     data = getOnetSource(url)
     if data:
@@ -48,12 +48,14 @@ def getPageWords(url):
         for p in select(data, '#detail p.hyphenate'):
             text += re.sub(r'\n|\r|\t|\s{2,}|[,.!]', '', p.getText())+' '
 
-        words = set(text.split(' '))
+        words = text.split(' ')
 
+        """
         # parset title
         titleBox = select(data, '#mainTitle h1')
         if titleBox:
             title = re.sub(r'\n|\r|\t|\s{2,}|[,.!]', '', titleBox[0].getText()) # escape text
             words = words.union(set(title.split(' ')))
+        """
         return words
     return None

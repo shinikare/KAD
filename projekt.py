@@ -1,54 +1,68 @@
 # -*- encoding: utf-8 -*-
-
+import json
 from libs.onet import getAnahorsFromApi, getPageWords
-from multiprocessing import Queue
-import threading, sys, codecs
+from multiprocessing import Process
+import threading, sys, codecs, time, os
 
 def chunkList(l, n):
+    list = []
     for i in xrange(0, len(l), n):
-        yield l[i:i+n]
+        list.append(l[i:i+n])
+    return list
 
-def getWords(links, queue,i ):
+def getWords(links, i ):
+    wl = []
     for link in links:
         words = getPageWords(link)
         if words:
             print 'Parsing link',link,'ok', len(words)
-            queue.put(words)
+            wl+=words
         else:
             print 'Parsing link',link,'fail - empty set of words'
-
+    #queue.put([1,2,3], False)
+    with codecs.open('out/process-'+str(i)+'.json', 'w+') as f:
+        json.dump(wl, f)
+    print 'Found ', len(wl)
+    return(0)
 
 if __name__ == '__main__':
     links = getAnahorsFromApi('news')
     if links:
         amount = len(links)/5
         chunks = chunkList(links, amount)
-        queue = Queue()
+        try:
+            os.makedirs('out')
+        except Exception:
+            pass
 
-        processes = [] # process list to wait
+        print 'Starting ', len(chunks)
+        subprocess = [] # process list to wait
         i=0
         for chunk in chunks:
-            p = threading.Thread(target=getWords, args=(chunk, queue, i))
-            p.daemon = True
+            p = Process(target=getWords, args=(chunk, i))
             p.start()
-            processes.append(p)
+            subprocess.append(p)
+            i+=1
 
-        while processes:
-            processes.pop().join()
+        time.sleep(5)
+        for p in subprocess:
+            p.join()                    
 
+        mainList = []
+        for i in range(len(chunks)-1):
+            with codecs.open('out/process-'+str(i)+'.json', 'r') as f:
+                mainList += json.load(f)
 
-        mainSet = set ()
-        for i in range(1,amount-1):
-            mainSet = mainSet.union(queue.get())
+        print 'Excluding repeated words'
+        mainSet = set(mainList)
 
         # generate csv
-        outSet = set ()
+        outSet = []
         print 'Found ', len(mainSet), ' in ', amount*5
         with codecs.open('out.csv', 'w+', encoding='utf8') as f:
             for word in mainSet:
                 if len(word) > 4:
-                    outSet.add(word)
+                    outSet.append(word)
                     f.write(word+"\n")
 
         print 'Accepted ', len(outSet)
-        sys.exit(0)
