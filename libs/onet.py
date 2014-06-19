@@ -36,7 +36,7 @@ def getAnahorsFromApi(newsfeed):
     else:
         return None
 
-def getPageWords(url):
+def getPageWords(data):
     """
         Parse page and return words from content
         @param url Link to page
@@ -59,3 +59,21 @@ def getPageWords(url):
         """
         return words
     return None
+
+def getPageDate(data):
+    """
+        Return page data
+    """
+    return None
+
+def getOnetPage(url):
+    """
+        Parsing data from onet page, return tuple with
+        date and word list
+        @return {tuple}
+    """
+    data = getOnetSource(url)
+    words = getPageWords(data)
+    date = getPageDate(data)
+
+    return words, date
