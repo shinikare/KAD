@@ -42,11 +42,10 @@ def getPageWords(data):
         @param url Link to page
         @return {list}
     """
-    data = getOnetSource(url)
     if data:
         text = ''
         for p in select(data, '#detail p.hyphenate'):
-            text += re.sub(r'\n|\r|\t|\s{2,}|[,.!]', '', p.getText())+' '
+            text += re.sub(r'\n|\r|\t|\s{2,}|[,.!"]', '', p.getText())+' '
 
         words = text.split(' ')
 
@@ -64,16 +63,26 @@ def getPageDate(data):
     """
         Return page data
     """
+    date = select(data, '#articleHeading meta')
+    if date:
+        return date[0].get('content')
     return None
 
-def getOnetPage(url):
+def rankOnetPage(data, patterns = None):
     """
         Parsing data from onet page, return tuple with
         date and word list
         @return {tuple}
     """
-    data = getOnetSource(url)
-    words = getPageWords(data)
-    date = getPageDate(data)
+    if patterns:
+        if data:
+            words = getPageWords(data)
+            amount = {}
+            total = 0
+            for pattern in patterns:
+                amount[pattern] = len([i for i, x in enumerate(words)
+                                       if x.encode('utf8') == pattern])
+                total += amount[pattern]
 
-    return words, date
+            return float(total) / len(amount), amount
+    return 0, None

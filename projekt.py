@@ -26,6 +26,9 @@ def getWords(links, i ):
     return(0)
 
 if __name__ == '__main__':
+    """
+     Getting words from articles
+    """
     links = getAnahorsFromApi('news')
     if links:
         amount = len(links)/5
@@ -46,7 +49,7 @@ if __name__ == '__main__':
 
         time.sleep(5)
         for p in subprocess:
-            p.join()                    
+            p.join()
 
         mainList = []
         for i in range(len(chunks)-1):
